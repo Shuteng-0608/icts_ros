@@ -1,0 +1,8 @@
+<launch>
+
+    <arg name="map" default="drwall_low_1.3.yaml" />
+    <node pkg="map_server" type="map_server" name="map_server" args="$(find icts_ros)/map/$(arg map)" />
+
+    <node pkg="icts_ros" type="icts_ros" name="icts_map" output="screen"/>
+
+</launch>

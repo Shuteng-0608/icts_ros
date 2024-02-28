@@ -1,0 +1,7 @@
+image: /home/shuteng/catkin_ws/src/icts_ros/map/drwall_low_1.3.pgm
+resolution: 1.300000
+origin: [-49.400000, -49.400000, 0.000000]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196
+
