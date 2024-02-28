@@ -1,6 +1,6 @@
 statistics:
-  cost: 26
-  runtime: 0.119286
+  cost: 18
+  runtime: 0.0945473
 schedule:
   agent0:
     - x: 0
@@ -18,30 +18,18 @@ schedule:
     - x: 0
       y: 4
       t: 4
-    - x: 0
+    - x: 1
       y: 4
       t: 5
-    - x: 0
+    - x: 2
       y: 4
       t: 6
-    - x: 0
+    - x: 3
       y: 4
       t: 7
-    - x: 0
+    - x: 4
       y: 4
       t: 8
-    - x: 0
-      y: 4
-      t: 9
-    - x: 0
-      y: 4
-      t: 10
-    - x: 0
-      y: 4
-      t: 11
-    - x: 0
-      y: 4
-      t: 12
   agent1:
     - x: 4
       y: 0
@@ -52,33 +40,21 @@ schedule:
     - x: 2
       y: 0
       t: 2
-    - x: 1
-      y: 0
-      t: 3
-    - x: 1
+    - x: 2
       y: 1
+      t: 3
+    - x: 2
+      y: 2
       t: 4
-    - x: 1
+    - x: 2
       y: 2
       t: 5
-    - x: 1
-      y: 3
+    - x: 2
+      y: 2
       t: 6
-    - x: 1
-      y: 4
+    - x: 2
+      y: 2
       t: 7
-    - x: 1
-      y: 5
+    - x: 2
+      y: 2
       t: 8
-    - x: 0
-      y: 5
-      t: 9
-    - x: 0
-      y: 6
-      t: 10
-    - x: 0
-      y: 7
-      t: 11
-    - x: 0
-      y: 8
-      t: 12

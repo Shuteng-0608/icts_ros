@@ -69,7 +69,7 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
         goals.emplace_back(std::make_pair(goal[0].as<int>(), goal[1].as<int>()));
 
         ROS_INFO("Reading agent %d info : from start[%d, %d] to goal[%d, %d]",
-                 name.as<int>(), start[0].as<int>(), goal[0].as<int>(), start[1].as<int>(), goal[1].as<int>());
+                 name.as<int>(), start[0].as<int>(), start[1].as<int>(), goal[0].as<int>(), goal[1].as<int>());
     }
 
     ROS_INFO("====== ICTS Begin! ======");
@@ -111,7 +111,7 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
             output = *it;
             for (int i = 0; i < output.size(); i++) {
                 path[count][i][0] = output[i].first;
-                path[count][i][1] = output[i].first;
+                path[count][i][1] = output[i].second;
                 out << "    - x: " << output[i].first << std::endl
                 << "      y: " << output[i].second << std::endl
                 << "      t: " << i << std::endl;
@@ -129,6 +129,10 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
     // std::cout<<"TIME TAKEN TO COMPLETE THE TASK ::"<<std::endl
     //             <<"ICTS :: "<<icts_time<<std::endl<<std::endl<<std::endl;
     ROS_INFO("TIME TAKEN TO COMPLETE THE TASK : %f", icts_time);
+
+    // for(int i = 0; i < makespan; i++) {
+    //     cout << 
+    // }
 
 
     // publish path
@@ -180,7 +184,7 @@ int main(int argc, char* argv[]) {
     ros::NodeHandle nh;
  
     // ===== for costmap ===== //
-    ros::Subscriber sub = nh.subscribe("/map", 10, sub_callback);
+    ros::Subscriber sub = nh.subscribe("/mapf_base/map", 10, sub_callback);
 
     ros::spin();
     return 0;
