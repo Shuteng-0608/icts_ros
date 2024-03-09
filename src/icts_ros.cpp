@@ -21,8 +21,15 @@
 #include "actionlib/client/simple_action_client.h"
 #include <boost/thread.hpp>
 
+#include "nav_msgs/Path.h"
+
+#include <visualization_msgs/Marker.h>
+
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 using namespace ICT;
+
+
+
 
 void sendGoal(const move_base_msgs::MoveBaseGoal& goal, MoveBaseClient& ac, int makespan) {
     
@@ -35,7 +42,7 @@ void sendGoal(const move_base_msgs::MoveBaseGoal& goal, MoveBaseClient& ac, int 
 
 void sub_callback(const nav_msgs::OccupancyGrid &map){
     // Load agents (start & goal) 
-    YAML::Node config = YAML::LoadFile("/home/shuteng/catkin_ws/src/icts_ros/example/two_agents.yaml");
+    YAML::Node config = YAML::LoadFile("/home/april/catkin_ws/src/icts_ros/example/two_agents.yaml");
     // Map info init
     int dimx = 0;
     int dimy = 0;
@@ -94,11 +101,29 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
     temp_ = *temp;
     int path[2][temp_.size()][2];
     int makespan = 0;
+
+////////////////////
+    nav_msgs::Path global_path_msg0;
+    global_path_msg0.header.stamp = ros::Time::now();
+    global_path_msg0.header.frame_id = "map";
+    nav_msgs::Path global_path_msg1;
+    global_path_msg1.header.stamp = ros::Time::now();
+    global_path_msg1.header.frame_id = "map";
+
+
+
+
+
+
     if (success) {
+        // 清空之前的路径数据
+        global_path_msg0.poses.clear();
+        global_path_msg1.poses.clear();
+
         // std::cout << "Planning successful! " << std::endl;
         ROS_INFO("===== Planning successful! =====");
 
-        std::ofstream out("/home/shuteng/catkin_ws/src/icts_ros/example/output_icts_two_agents.yaml");
+        std::ofstream out("/home/april/catkin_ws/src/icts_ros/example/output_icts_two_agents.yaml");
         out << "statistics:" << std::endl;
         out << "  cost: " << solution.first << std::endl;
         out << "  runtime: " << icts_time << std::endl;
@@ -115,11 +140,34 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
                 out << "    - x: " << output[i].first << std::endl
                 << "      y: " << output[i].second << std::endl
                 << "      t: " << i << std::endl;
+
+
+
+                geometry_msgs::PoseStamped pose;
+                pose.pose.position.x = output[i].first;
+                pose.pose.position.y = output[i].second;
+                pose.pose.orientation.w = 1.0;
+                pose.header.stamp = ros::Time::now();  // 设置时间戳
+                pose.header.frame_id = "map";  // 设置坐标系
+
+                if (count == 0) {
+                    global_path_msg0.poses.push_back(pose);
+                } else if (count == 1) {
+                    global_path_msg1.poses.push_back(pose);
+                }
+//////////
+                // global_path_msg.poses.push_back(geometry_msgs::PoseStamped());
+                // global_path_msg.poses.back().header.frame_id = "map";
+                // global_path_msg.poses.back().header.stamp = ros::Time::now();
+                // global_path_msg.poses.back().pose.position.x = output[i].first;
+                // global_path_msg.poses.back().pose.position.y = output[i].second;
+                // global_path_msg.poses.back().pose.orientation.w = 1.0;
             }
             count++;
         }
         makespan = output.size();
         ROS_INFO("===== Makespan : %d =====", makespan);
+
 
     } else {
         // std::cout << "Planning NOT successful!" << std::endl;
@@ -133,6 +181,18 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
     // for(int i = 0; i < makespan; i++) {
     //     cout << 
     // }
+
+
+///////////////
+    // Publish global path
+    ros::NodeHandle nh;
+    ros::Publisher global_path_pub0 = nh.advertise<nav_msgs::Path>("/mapf_base/rb_0/plan", 1, true);
+    global_path_pub0.publish(global_path_msg0);
+    ros::Publisher global_path_pub1 = nh.advertise<nav_msgs::Path>("/mapf_base/rb_1/plan", 1, true);
+    global_path_pub1.publish(global_path_msg1);
+
+
+
 
 
     // publish path
@@ -174,6 +234,7 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
         thread_1.join();
     }
 
+
 }
 
 
@@ -182,6 +243,11 @@ int main(int argc, char* argv[]) {
 
     ros::init(argc, argv, "send_goal_client");
     ros::NodeHandle nh;
+
+    //  // 初始化发布者
+    // path_marker_pub = nh.advertise<visualization_msgs::Marker>("visualization_path_marker", 10);
+    // robot_marker_pub = nh.advertise<visualization_msgs::Marker>("visualization_robot_marker", 10);
+
  
     // ===== for costmap ===== //
     ros::Subscriber sub = nh.subscribe("/mapf_base/map", 10, sub_callback);
