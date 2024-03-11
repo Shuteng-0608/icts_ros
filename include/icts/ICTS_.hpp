@@ -15,6 +15,7 @@
 
 #include <algorithm>
 
+
 typedef std::pair<int, int> pair_1;
 typedef std::pair<int, pair_1 > pair_2;
 typedef std::pair<int, pair_2 > pair_3;
@@ -460,16 +461,14 @@ namespace ICT_NEW{
 			long long upper_bound = (goals.size() * goals.size()) * generate_map();
 			compute_heuristics();
 			std::vector<int> optimal_cost = find_shortest_path(starts);
-
 			IncreasingCostTree ict(temp_map, goals, starts, optimal_cost);
-
 			std::deque<TreeNode*> open_list = ict.get_open_list();
 			std::map<pair_1, MDD> mdd_cache;
 			int nodes_expanded = 0;
 
 			auto icts_start = std::chrono::system_clock::now();
-
 			while(!open_list.empty()){
+			
 				TreeNode* current_node = ict.get_next_node_to_expand();
 				std::vector<int> node_cost = current_node->get_costs();
 
