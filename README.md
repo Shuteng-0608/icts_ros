@@ -1,2 +1,2 @@
 # icts_ros
-The original ICTS code comes from [here](https://github.com/vikikkdi/icts)
+The original ICTS (Increasing Cost Tree Search) code comes from [here](https://github.com/vikikkdi/icts)
