@@ -1,7 +1,15 @@
 agents:
--   goal: [5, 0]
+-   goal: [0, -10]
     name: 0
     start: [0, 0]
--   goal: [6, 0]
+-   goal: [0, 0]
     name: 1
     start: [0, 4]
+
+# agents:
+# -   goal: [50, 40]
+#     name: 0
+#     start: [50, 50]
+# -   goal: [50, 50]
+#     name: 1
+#     start: [50, 54]
