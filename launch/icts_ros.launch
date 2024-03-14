@@ -1,5 +1,5 @@
 <launch>
-    <arg name="map" default="drwall_low_1.3.yaml" />
+    <arg name="map" default="drwall_low_1.0.yaml" />
     <group ns="mapf_base">
         
         <node pkg="map_server" type="map_server" name="map_server" args="$(find icts_ros)/map/$(arg map)" />
