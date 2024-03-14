@@ -48,6 +48,8 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
     int dimx = 0;
     int dimy = 0;
     double resolution = 0;
+    int origin_x = 0;
+    int origin_y = 0;
     std::vector<std::pair<int, int> > goals;
     std::vector<std::pair<int, int> > starts;
     std::vector<std::pair<int, int> > obstacles;
@@ -57,30 +59,40 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
     dimx = map.info.width;
     dimy = map.info.height;
     resolution = map.info.resolution;
+    origin_x = map.info.origin.position.x;
+    origin_y = map.info.origin.position.y;
+    
+    
     ROS_INFO("Map Width : %d", dimx);
     ROS_INFO("Map Height : %d", dimy);
     ROS_INFO("Map Resolution : %f", resolution);
+    ROS_INFO("Map origin: [%d, %d, 0.000000]", origin_x, origin_y);
 
     // === Read obstacles === //
     int num = 0;
-    for (int i = 0; i < dimx * dimy; i++) {
-        if (map.data[i] > 0.196 ) {
-            obstacles.emplace_back(std::make_pair(i / dimx, i % dimx));
-            num++;
+    for (int y = 0; y < dimy; y++) {
+        for (int x = 0; x < dimx; x++) {
+            int index = y * dimx + x;
+            if (map.data[index] >= 0.196) {
+                num++;
+                obstacles.emplace_back(std::make_pair(x, y));
+            }
         }
     }
+    
     ROS_INFO("Number of obstacles : %d", num);
 
     for (const auto& node : config["agents"]) {
         const auto& start = node["start"];
         const auto& goal = node["goal"];
         const auto& name = node["name"];
-        starts.emplace_back(std::make_pair(start[0].as<int>(), start[1].as<int>()));
-        // std::cout << "s: " << startStates.back() << std::endl;
-        goals.emplace_back(std::make_pair(goal[0].as<int>(), goal[1].as<int>()));
+        starts.emplace_back(std::make_pair(start[0].as<int>() - origin_x, start[1].as<int>() - origin_y));
+        goals.emplace_back(std::make_pair(goal[0].as<int>() - origin_x, goal[1].as<int>() - origin_y));
 
         ROS_INFO("Reading agent %d info : from start[%d, %d] to goal[%d, %d]",
-                 name.as<int>(), start[0].as<int>(), start[1].as<int>(), goal[0].as<int>(), goal[1].as<int>());
+                    name.as<int>(),
+                    start[0].as<int>(), start[1].as<int>(),
+                    goal[0].as<int>(), goal[1].as<int>());
     }
 
     ROS_INFO("====== ICTS Begin! ======");
@@ -93,12 +105,10 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
 
     auto icts_start = std::chrono::system_clock::now();
     bool success = mapf_icts_.search(mapf, starts, &solution);
-    // int makespan = solution.first / 2;
-    // ROS_INFO("===== Makespan : %d =====", makespan);
-    // std::cout<<"Cost :: "<<solution.first<<std::endl;
+    
     auto icts_end = std::chrono::system_clock::now();
     auto icts_time = std::chrono::duration<double>(icts_end - icts_start).count();
-    //mapf_icts.search(mapf, starts, &solution1);//
+    
     std::vector<std::pair<int, int> > output;
     std::vector<std::pair<int, int> > temp_;
     auto temp = solution.second.begin();
@@ -117,7 +127,6 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
     if (success) {
         global_path_msg0.poses.clear();
         global_path_msg1.poses.clear();
-        // std::cout << "Planning successful! " << std::endl;
         ROS_INFO("===== Planning successful! =====");
 
         std::ofstream out("/home/shuteng/catkin_ws/src/icts_ros/example/output_icts_two_agents.yaml");
@@ -139,8 +148,8 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
                 << "      t: " << i << std::endl;
 
                 geometry_msgs::PoseStamped pose;
-                pose.pose.position.x = output[i].first * resolution;
-                pose.pose.position.y = output[i].second * resolution;
+                pose.pose.position.x = (output[i].first + origin_x) * resolution;
+                pose.pose.position.y = (output[i].second + origin_y) * resolution;
                 pose.pose.orientation.w = 1.0;
                 pose.header.stamp = ros::Time::now();  
                 pose.header.frame_id = "map";  
@@ -154,22 +163,21 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
             count++;
         }
         makespan = output.size();
-
+        ROS_INFO("===== TIME TAKEN  : %f =====", icts_time);
         ROS_INFO("===== Makespan : %d =====", makespan);
+        ROS_INFO("===== Cost : %d =====", solution.first);
 
     } else {
         ROS_INFO("===== Planning NOT successful! =====");
     }
 
-    ROS_INFO("===== TIME TAKEN  : %f =====", icts_time);
-
+    
     // Publish global path
     ros::NodeHandle nh_v;
     ros::Publisher global_path_pub0 = nh_v.advertise<nav_msgs::Path>("/mapf_base/rb_0/plan", 1, true);
     global_path_pub0.publish(global_path_msg0);
     ros::Publisher global_path_pub1 = nh_v.advertise<nav_msgs::Path>("/mapf_base/rb_1/plan", 1, true);
     global_path_pub1.publish(global_path_msg1);
-
 
 
     // publish path
@@ -197,13 +205,13 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
     for (int i = 0; i < makespan; i++) {
         int rb_0 = 0;
         goal_0.target_pose.header.stamp = ros::Time::now();
-        goal_0.target_pose.pose.position.x = path[0][i][0] * resolution;
-        goal_0.target_pose.pose.position.y = path[0][i][1] * resolution;
+        goal_0.target_pose.pose.position.x = (path[0][i][0] + origin_x) * resolution;
+        goal_0.target_pose.pose.position.y = (path[0][i][1] + origin_y) * resolution;
         goal_0.target_pose.pose.orientation.w = 1;
         int rb_1 = 1;
         goal_1.target_pose.header.stamp = ros::Time::now();
-        goal_1.target_pose.pose.position.x = path[1][i][0] * resolution;
-        goal_1.target_pose.pose.position.y = path[1][i][1] * resolution;
+        goal_1.target_pose.pose.position.x = (path[1][i][0] + origin_x) * resolution;
+        goal_1.target_pose.pose.position.y = (path[1][i][1] + origin_y) * resolution;
         goal_1.target_pose.pose.orientation.w = 1;
 
         ROS_INFO("[=== At Time Stamp %d ===]", i);
@@ -215,7 +223,7 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
         thread_0.join();
         thread_1.join();
     }
-    ROS_INFO("==== MAPF Navigation Finished ====");
+    ROS_INFO("==== MAPF Navigation Finished Successfully ====");
 }
 
 
@@ -227,6 +235,7 @@ int main(int argc, char* argv[]) {
  
     // ===== for costmap ===== //
     ros::Subscriber sub = nh.subscribe("/mapf_base/map", 10, sub_callback);
+    ros::MultiThreadedSpinner spinner(2);
     ros::spin();
     return 0;
 }
