@@ -86,8 +86,10 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
         const auto& start = node["start"];
         const auto& goal = node["goal"];
         const auto& name = node["name"];
-        starts.emplace_back(std::make_pair(start[0].as<int>() - origin_x, start[1].as<int>() - origin_y));
-        goals.emplace_back(std::make_pair(goal[0].as<int>() - origin_x, goal[1].as<int>() - origin_y));
+        starts.emplace_back(std::make_pair( start[0].as<int>() - (origin_x / resolution), 
+                                            start[1].as<int>() - (origin_y / resolution)));
+        goals.emplace_back(std::make_pair(  goal[0].as<int>() - (origin_x / resolution), 
+                                            goal[1].as<int>() - (origin_y / resolution)));
 
         ROS_INFO("Reading agent %d info : from start[%d, %d] to goal[%d, %d]",
                     name.as<int>(),
@@ -148,8 +150,8 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
                 << "      t: " << i << std::endl;
 
                 geometry_msgs::PoseStamped pose;
-                pose.pose.position.x = (output[i].first + origin_x) * resolution;
-                pose.pose.position.y = (output[i].second + origin_y) * resolution;
+                pose.pose.position.x = output[i].first * resolution + origin_x;
+                pose.pose.position.y = output[i].second * resolution + origin_y;
                 pose.pose.orientation.w = 1.0;
                 pose.header.stamp = ros::Time::now();  
                 pose.header.frame_id = "map";  
@@ -205,13 +207,13 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
     for (int i = 0; i < makespan; i++) {
         int rb_0 = 0;
         goal_0.target_pose.header.stamp = ros::Time::now();
-        goal_0.target_pose.pose.position.x = (path[0][i][0] + origin_x) * resolution;
-        goal_0.target_pose.pose.position.y = (path[0][i][1] + origin_y) * resolution;
+        goal_0.target_pose.pose.position.x = path[0][i][0] * resolution + origin_x;
+        goal_0.target_pose.pose.position.y = path[0][i][1] * resolution + origin_y;
         goal_0.target_pose.pose.orientation.w = 1;
         int rb_1 = 1;
         goal_1.target_pose.header.stamp = ros::Time::now();
-        goal_1.target_pose.pose.position.x = (path[1][i][0] + origin_x) * resolution;
-        goal_1.target_pose.pose.position.y = (path[1][i][1] + origin_y) * resolution;
+        goal_1.target_pose.pose.position.x = path[1][i][0] * resolution + origin_x;
+        goal_1.target_pose.pose.position.y = path[1][i][1] * resolution + origin_y;
         goal_1.target_pose.pose.orientation.w = 1;
 
         ROS_INFO("[=== At Time Stamp %d ===]", i);
