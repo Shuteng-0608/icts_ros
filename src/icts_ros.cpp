@@ -48,8 +48,8 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
     int dimx = 0;
     int dimy = 0;
     double resolution = 0;
-    int origin_x = 0;
-    int origin_y = 0;
+    double origin_x = 0;
+    double origin_y = 0;
     std::vector<std::pair<int, int> > goals;
     std::vector<std::pair<int, int> > starts;
     std::vector<std::pair<int, int> > obstacles;
@@ -66,7 +66,7 @@ void sub_callback(const nav_msgs::OccupancyGrid &map){
     ROS_INFO("Map Width : %d", dimx);
     ROS_INFO("Map Height : %d", dimy);
     ROS_INFO("Map Resolution : %f", resolution);
-    ROS_INFO("Map origin: [%d, %d, 0.000000]", origin_x, origin_y);
+    ROS_INFO("Map origin: [%f, %f, 0.000000]", origin_x, origin_y);
 
     // === Read obstacles === //
     int num = 0;
